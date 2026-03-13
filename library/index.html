@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>বাংলা গ্রন্থাগার - Library Catalog</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+            
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #8b5cf6, #a855f7);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .controls {
+            padding: 30px;
+            background: linear-gradient(135deg, #c084fc, #d8b4fe);
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .search-container {
+            position: relative;
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 15px 20px 15px 50px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .search-box:focus {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(139, 92, 246, 0.4);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #8b5cf6;
+            font-size: 18px;
+        }
+
+        .filter-container {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #6d28d9;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        .filter-btn:hover, .filter-btn.active {
+            background: linear-gradient(135deg, #8b5cf6, #a855f7);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(139, 92, 246, 0.4);
+        }
+
+        .stats {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px 30px;
+            text-align: center;
+            font-weight: 600;
+            color: #6d28d9;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            max-height: 70vh;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th {
+            background: linear-gradient(135deg, #8b5cf6, #a855f7);
+            color: white;
+            padding: 20px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 16px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        td {
+            padding: 15px 20px;
+            border-bottom: 1px solid #e5e7eb;
+            transition: background 0.3s ease;
+        }
+
+        tr {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        tr:hover {
+            background: linear-gradient(90deg, #f3e8ff, #e9d5ff);
+            transform: scale(1.01);
+        }
+
+        tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6b7280;
+            font-size: 1.2em;
+        }
+
+        .book-no {
+            font-weight: 700;
+            color: #8b5cf6;
+            font-size: 18px;
+        }
+
+        .title {
+            font-weight: 600;
+            color: #4f46e5;
+        }
+
+        .author {
+            color: #7c3aed;
+            font-style: italic;
+        }
+
+        .genre {
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #c084fc, #d8b4fe);
+            color: #5b21b6;
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            th, td {
+                padding: 12px 10px;
+                font-size: 14px;
+            }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2em;
+            color: #8b5cf6;
+        }
+
+        .book-card{
+        background:white;
+        padding:20px;
+        border-radius:12px;
+        box-shadow:0 5px 15px rgba(0,0,0,0.1);
+        transition:0.3s;
+        cursor:pointer;
+        }
+
+        .popup{
+        display:none;
+        position:fixed;
+        top:0;
+        left:0;
+        width:100%;
+        height:100%;
+        background:rgba(0,0,0,0.6);
+        justify-content:center;
+        align-items:center;
+        z-index:999;
+        }
+
+        .popup-content{
+        background:white;
+        padding:30px;
+        border-radius:12px;
+        width:320px;
+        text-align:center;
+        }
+
+
+        .book-card:hover{
+        transform:translateY(-5px);
+        box-shadow:0 10px 25px rgba(0,0,0,0.2);
+}
+
+        .footer {
+    text-align: center;
+    padding: 20px;
+    background: linear-gradient(135deg, #8b5cf6, #a855f7);
+    color: white;
+    font-weight: 500;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    margin-top: 30px;
+}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 বাংলা গ্রন্থাগার</h1>
+            <p>বাংলা সাহিত্যের সমৃদ্ধ ভাণ্ডার - ২৯৪টি বইয়ের তালিকা</p>
+        </div>
+
+        <div class="controls">
+            <button id="downloadPDF">Download PDF</button>
+            <div class="search-container">
+                <span class="search-icon">🔍</span>
+                <input type="text" class="search-box" id="searchInput" placeholder="বইয়ের নাম, লেখক বা বই নম্বর দিয়ে খুঁজুন...">
+            </div>
+            <div class="filter-container">
+                <select id="sortSelect" style="padding:10px;border-radius:20px;border:none;">
+                <option value="number">বই নম্বর</option>
+                <option value="az">নাম A → Z</option>
+                <option value="za">নাম Z → A</option>
+                </select>
+                <button class="filter-btn active" data-genre="all">সব</button>
+                <button class="filter-btn" data-genre="ছোটগল্প">ছোটগল্প</button>
+                <button class="filter-btn" data-genre="উপন্যাস">উপন্যাস</button>
+                <button class="filter-btn" data-genre="জীবনী">জীবনী</button>
+                <button class="filter-btn" data-genre="প্রবন্ধ">প্রবন্ধ</button>
+                <button class="filter-btn" data-genre="সঙ্গীত">সঙ্গীত</button>
+                <button class="filter-btn" data-genre="ভৌতিক গল্প">ভৌতিক</button>
+                
+            </div>
+</div>
+        </div>
+
+        <div class="stats" id="stats">
+            📊 মোট <span id="totalBooks">294</span>টি বই | সক্রিয় ফিল্টার: <span id="activeFilter">সব</span>
+        </div>
+
+        <div class="table-container">
+            <table id="booksTable">
+                <thead>
+                    <tr>
+                        <th>বই নং</th>
+                        <th>বইয়ের নাম</th>
+                        <th>লেখক</th>
+                        <th>ধরণ</th>
+                    </tr>
+                </thead>
+                <tbody id="booksBody">
+                    <!-- Books will be populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+<script>
+
+const books = [
+{no: 1, title: "সরস গল্প", author: "নারায়ণ গঙ্গোপাধ্যায়", genre: "ছোটগল্প"},
+{no: 2, title: "প্রথম আলো", author: "সুনীল গঙ্গোপাধ্যায়", genre: "উপন্যাস"},
+{no: 3, title: "স্বর্গের শেষ প্রান্ত", author: "তিলোত্তমা মজুমদার", genre: "উপন্যাস"},
+{no: 4, title: "সুচিত্রা সেন অচেনা", author: "চন্ডী মুখোপাধ্যায়", genre: "জীবনী"},
+{no: 5, title: "গল্প সমগ্র(১)", author: "সুচিত্রা ভট্টাচার্য", genre: "ছোটগল্প"},
+{no: 6, title: "প্রবন্ধ সংগ্রহ", author: "সত্যজিৎ রায়", genre: "প্রবন্ধ"},
+{no: 7, title: "নানা রঙের নবনীতা", author: "নবনীতা দেবসেন", genre: "প্রবন্ধ"},
+{no: 8, title: "যত মত তত পথ", author: "বরুন কুমার রায়", genre: "প্রবন্ধ"},
+{no: 9, title: "গল্প সমগ্র(2)", author: "সুচিত্রা ভট্টাচার্য", genre: "ছোটগল্প"},
+{no: 10, title: "সমগ্র গোয়েন্দা সিরিজ", author: "স্বপন কুমার", genre: "গোয়েন্দা রহস্য"},
+{no: 11, title: "শঙ্কু সমগ্র", author: "সত্যজিৎ রায়", genre: "বিজ্ঞান কল্পকাহিনী"},
+{no: 12, title: "ছিন্নপত্র", author: "রবীন্দ্রনাথ ঠাকুর", genre: "চিঠিপত্র"},
+{no: 13, title: "অন্তরঙ্গ সত্যজিৎ", author: "বাণীব্রত মুখোপাধ্যায়", genre: "জীবনী"},
+{no: 14, title: "শিশু ও কিশোর সাহিত্য সমগ্র", author: "অমরেন্দ্র চক্রবর্তী", genre: "শিশু সাহিত্য"},
+{no: 15, title: "গল্প সমগ্র", author: "প্রভাত কুমার মুখোপাধ্যায়", genre: "ছোটগল্প"},
+{no: 16, title: "শ্রেষ্ঠ ১০ টি উপন্যাস", author: "শৈলেন ঘোষ", genre: "উপন্যাস"},
+{no: 17, title: "অন্দরমহল", author: "সাদাত হোসাইন", genre: "উপন্যাস"},
+{no: 18, title: "প্রেমেন্দ্র মিত্রের সমস্ত গল্প (2)", author: "প্রেমেন্দ্র মিত্র", genre: "ছোটগল্প"},
+{no: 19, title: "উপন্যাস সমগ্র (১৪)", author: "সুনীল গঙ্গোপাধ্যায়", genre: "উপন্যাস"},
+{no: 20, title: "তলস্তয় রচনা সংগ্রহ অনুবাদ", author: "সমর সেন", genre: "সাহিত্য সংকলন"},
+{no: 21, title: "রবীন্দ্রপত্র সমগ্র ১", author: "দ্বিজন ঘোষাল", genre: "চিঠিপত্র"},
+{no: 22, title: "সংগীত তত্ত্ব", author: "দেবব্রত দত্ত", genre: "সঙ্গীত"},
+{no: 23, title: "অমনিবাস", author: "শৈল চক্রবর্তী", genre: "রসিকতা"},
+{no: 24, title: "এসো বসো আহারে", author: "শম্পা ঘোষ", genre: "রন্ধন"},
+{no: 25, title: "আত্মকথা", author: "তারাশঙ্কর বন্দ্যোপাধ্যায়(১)", genre: "আত্মজীবনী"},
+{no: 26, title: "ভারতের ইতিহাস", author: "অধ্যাপক ভট্টাচার্য", genre: "ইতিহাস"},
+{no: 27, title: "রবীন্দ্রনাথের গান", author: "মুদ্রা", genre: "সঙ্গীত"},
+{no: 28, title: "ক্ষমা করো হে প্রভু", author: "রূপক সাহা", genre: "ধর্মীয়"},
+{no: 29, title: "আগুনের পরশমণি রবীন্দ্র সংগীত বিষয়ক প্রবন্ধ", author: "অমিত কুমার দাস", genre: "প্রবন্ধ"},
+{no: 30, title: "শতবার্ষিকী সংকলন", author: "নারায়ণ গঙ্গোপাধ্যায়", genre: "সাহিত্য সংকলন"},
+{no: 31, title: "বিশ্বের সেরা ভৌতিক গল্প", author: "", genre: "ভৌতিক গল্প"},
+{no: 32, title: "অলৌকিক ও রোমাঞ্চ সমগ্র", author: "অজয় রায়", genre: "ভৌতিক ও রোমাঞ্চ"},
+{no: 33, title: "চৌরঙ্গী", author: "শংকর", genre: "উপন্যাস"},
+{no: 34, title: "শিবরাম রচনা সমগ্র", author: "", genre: "সাহিত্য সংকলন"},
+{no: 35, title: "আসা-যাওয়ার মাঝখানে", author: "নলিনীকান্ত সরকার", genre: "প্রবন্ধ"},
+{no: 36, title: "গল্প সংগ্রহ (১)", author: "বিমল কর", genre: "ছোটগল্প"},
+{no: 37, title: "শ্রেষ্ঠ গল্প", author: "শৈলজ মুখোপাধ্যায়", genre: "ছোটগল্প"},
+{no: 38, title: "বাপু", author: "পরিমল দে", genre: "জীবনী"},
+{no: 39, title: "গল্প সংগ্রহ", author: "প্রতিভা বসু", genre: "ছোটগল্প"},
+{no: 40, title: "রচনাবলী", author: "সাবিত্রী রায় (১)", genre: "সাহিত্য সংকলন"},
+{no: 41, title: "বঙ্গবাণী গল্প সংগ্রহ", author: "", genre: "ছোটগল্প"},
+{no: 42, title: "রাস্কিন বন্ড", author: "অনুবাদ পার্থপ্রতিম দাস দীপায়ন দত্ত রায়", genre: "সাহিত্য অনুবাদ"},
+{no: 43, title: "বিয়ের শব্দকোষ", author: "হরিপদ ভৌমিক", genre: "রসিকতা"},
+{no: 44, title: "৫০ টি গল্প", author: "সৈয়দ মুস্তাফা সিরাজ", genre: "ছোটগল্প"},
+{no: 45, title: "অলৌকিক গল্প সমগ্র", author: "শরদিন্দু বন্দ্যোপাধ্যায়", genre: "ভৌতিক গল্প"},
+{no: 46, title: "বঙ্কিমচন্দ্র তিন শতকের চোখে", author: "অমিত্রসুদন ভট্টাচার্য", genre: "সমালোচনা"},
+{no: 47, title: "মহাভারতের মর্মবাণী ও মূল্যবোধ", author: "ডঃ পার্থ চট্টোপাধ্যায়", genre: "ধর্মীয়"},
+{no: 48, title: "শেষ বেলায়", author: "সৌমিত্র চট্টোপাধ্যায়", genre: "আত্মজীবনী"},
+{no: 49, title: "শিশু ও কিশোর সাহিত্য ২য় খন্ড", author: "অবনীন্দ্রনাথ ঠাকুর", genre: "শিশু সাহিত্য"},
+{no: 50, title: "ভূতেরা আছেন ভুতেরা থাকবেন", author: "প্রফুল্ল রায়", genre: "ভৌতিক গল্প"},
+{no: 51, title: "রচনা সমগ্র (১)", author: "কাজী নজরুল ইসলাম", genre: "কবিতা"},
+{no: 52, title: "রচনা সমগ্র (২)", author: "কাজী নজরুল ইসলাম", genre: "কবিতা"},
+{no: 53, title: "বাল্মিকি রামায়ণ", author: "রাজশেখর বসু", genre: "ধর্মীয় মহাকাব্য"},
+{no: 54, title: "ক্যামেরার সামনে ক্যামেরার পিছনে", author: "সব্যসাচী চক্রবর্তী", genre: "আত্মজীবনী"},
+{no: 55, title: "রূপে অরূপে বিবেকানন্দ", author: "সুকুমার বন্দ্যোপাধ্যায়", genre: "জীবনী"},
+{no: 56, title: "উপন্যাস সমগ্র (৯)", author: "শীর্ষেন্দু মুখোপাধ্যায়", genre: "উপন্যাস"},
+{no: 57, title: "জগৎ কুটির", author: "অমর্ত্য সেন", genre: "প্রবন্ধ"},
+{no: 58, title: "রবীন্দ্র সংগীত মহাকোষ (২)", author: "প্রবীর গুহ ঠাকুরতা", genre: "সঙ্গীত"},
+{no: 59, title: "শতবার্ষিকী সংকলন", author: "গজেন্দ্রকুমার মিত্র", genre: "সাহিত্য সংকলন"},
+{no: 60, title: "মেঘনাদ রামায়নী", author: "নন্দন দাশগুপ্ত", genre: "ধর্মীয় সাহিত্য"},
+{no: 61, title: "চৌরঙ্গী শতবর্ষে", author: "কালি বন্দোপাধ্যায়", genre: "প্রবন্ধ"},
+{no: 62, title: "আরশিনগরের পড়শীদের গল্প", author: "সুমন গোস্বামী", genre: "ছোটগল্প"},
+{no: 63, title: "বাল্মিকী রামায়ণ ২", author: "সুভাষ ভট্টাচার্য", genre: "ধর্মীয় মহাকাব্য"},
+{no: 64, title: "রবীন্দ্র রচনাবলী কালানুক্রমিক (প্রথম খন্ড)", author: "", genre: "সাহিত্য সংকলন"},
+{no: 65, title: "বড়ু চন্ডীদাসের শ্রীকৃষ্ণকীর্তন সমগ্র", author: "অমিত্র সদন ভট্টাচার্য", genre: "ধর্মীয় সাহিত্য"},
+{no: 66, title: "নকশালবাড়ি আন্দোলনের নাট্য সমগ্র", author: "", genre: "নাটক"},
+{no: 67, title: "গল্প সমগ্র ১", author: "জ্যোতিরিন্দ্র নন্দী", genre: "ছোটগল্প"},
+{no: 68, title: "সব সেরা মুকুল", author: "শিবনাথ শাস্ত্রী সম্পাদিত", genre: "শিশু সাহিত্য"},
+{no: 69, title: "গল্প সমগ্র", author: "শৈলজানন্দ মুখোপাধ্যায়", genre: "ছোটগল্প"},
+{no: 70, title: "উপন্যাস সমগ্র", author: "শীর্ষেন্দু মুখোপাধ্যায়", genre: "উপন্যাস"},
+{no: 71, title: "ভূতের গল্প সংকলন", author: "আনন্দমেলা", genre: "ভৌতিক গল্প"},
+{no: 72, title: "গদ্য সংগ্রহ", author: "অনিমেষ বৈশ্য", genre: "প্রবন্ধ"},
+{no: 73, title: "রহস্য রোমাঞ্চ একাদশ", author: "সুমন্ত চট্টোপাধ্যায়", genre: "রহস্য ও রোমাঞ্চ"},
+{no: 74, title: "কিশোর সাহিত্য সমগ্র", author: "অবনীন্দ্রনাথ ঠাকুর", genre: "শিশু সাহিত্য"},
+{no: 75, title: "বাজার সমগ্র", author: "শ্যামল গঙ্গোপাধ্যায়", genre: "প্রবন্ধ"},
+{no: 76, title: "শ্রেষ্ঠ নাটক একাদশ", author: "মনোজ মিত্র", genre: "নাটক"},
+{no: 77, title: "সুভাষ থেকে নেতাজি", author: "পৃথ্বীরাজ সেন", genre: "জীবনী"},
+{no: 78, title: "সংস্কৃত নাট্য সংগ্রহ", author: "জ্যেতিন্দ্রনাথ ঠাকুর", genre: "নাটক"},
+{no: 79, title: "আট দশকের অমরেন্দ্র তার সৃষ্টির পথ", author: "", genre: "জীবনী"},
+{no: 80, title: "পথের পাঁচালী পত্রিকা পাঠ", author: "", genre: "সাহিত্য সমালোচনা"},
+{no: 81, title: "যেহেতু সেহেতু", author: "কল্যাণ মৈত্র", genre: "রসিকতা"},
+{no: 82, title: "সংগীত জীবন সুধা", author: "শ্রী নিরঞ্জন দে", genre: "সঙ্গীত"},
+{no: 83, title: "মেয়েদের চোরাগোপ্তা স্ল্যাং", author: "তৃপ্তি সান্ত্রা", genre: "ভাষা ও সংস্কৃতি"},
+{no: 84, title: "গৌড়নন্দ সমগ্র", author: "গৌরকিশোর ঘোষ", genre: "ব্যঙ্গ"},
+{no: 85, title: "একা একা একাশি", author: "শংকর", genre: "উপন্যাস"},
+{no: 86, title: "একালে সেকালের গোয়েন্দা রহস্য সুমন্ত চট্টোপাধ্যায় সম্পাদনা", author: "সুমন্ত চট্টোপাধ্যায়", genre: "গোয়েন্দা রহস্য"},
+{no: 87, title: "বিপ্লবীদের ডায়েরি স্মৃতিকথা সংগ্রহ (৩)", author: "", genre: "স্মৃতিকথা"},
+{no: 88, title: "৫০ টি গল্প রবিবাসরীয়", author: "আনন্দবাজার পত্রিকা", genre: "ছোটগল্প"},
+{no: 89, title: "পাল্টা হাওয়া", author: "স্মরণজিৎ চক্রবর্তী", genre: "উপন্যাস"},
+{no: 90, title: "গল্পসমগ্র", author: "রামকুমার মুখোপাধ্যায়", genre: "ছোটগল্প"},
+{no: 91, title: "বিবেক দ্যুতিতে", author: "উদ্ভাসিত সুভাষচন্দ্র", genre: "জীবনী"},
+{no: 92, title: "রবীন্দ্র গানের ঝরনা তলায়", author: "", genre: "সঙ্গীত"},
+{no: 93, title: "গ্রামের চিঠি", author: "তারাশঙ্কর বন্দ্যোপাধ্যায়", genre: "চিঠিপত্র"},
+{no: 94, title: "রহস্য কাহিনী", author: "শার্লক হোমস", genre: "গোয়েন্দা রহস্য"},
+{no: 95, title: "চিত্রনাট্য সংগ্রহ", author: "বুদ্ধদেব দাশগুপ্ত", genre: "চিত্রনাট্য"},
+{no: 96, title: "মহাভারতের প্রতিনায়ক", author: "নৃসিংহপ্রসাদ ভাদুড়ী", genre: "ধর্মীয় সাহিত্য"},
+{no: 97, title: "প্রেমেন্দ্র মিত্রের সমস্ত গল্প (১)", author: "প্রেমেন্দ্র মিত্র", genre: "ছোটগল্প"},
+{no: 98, title: "শরৎ রচনাবলী (১)", author: "", genre: "উপন্যাস"},
+{no: 99, title: "নগরনট", author: "দেবশঙ্কর", genre: "উপন্যাস"},
+{no: 100, title: "মহাভারত", author: "মল্লিকা ঘোষ", genre: "ধর্মীয় মহাকাব্য"},
+{no: 101, title: "মুহূর্ত কথা", author: "বাণী বসু", genre: "উপন্যাস"},
+{no: 102, title: "লকডাউন ডায়েরি ২০২০", author: "", genre: "ডায়েরি"},
+{no: 103, title: "নাট্য সমগ্র (১)", author: "রমাপ্রসাদ বনিক", genre: "নাটক"},
+{no: 104, title: "আমিষ ও নিরামিষ আহার ১ম খন্ড", author: "", genre: "রন্ধন"},
+{no: 105, title: "আমিষ ও নিরামিষ আহার ২য় খন্ড", author: "", genre: "রন্ধন"},
+{no: 106, title: "আনন্দে থাকা", author: "স্বামী সোমেশ্বরানন্দ", genre: "আত্মউন্নয়ন"},
+{no: 107, title: "মাইকেল জ্যাকসন", author: "", genre: "জীবনী"},
+{no: 108, title: "উপন্যাস সমগ্র", author: "বিমল কর", genre: "উপন্যাস"},
+{no: 109, title: "কমিক্স ও গ্রাফিক্স চতুর্থ সংখ্যা", author: "", genre: "কমিক্স"},
+{no: 110, title: "ভারতবর্ষ সেরা সংগ্রহ", author: "বারিদবরণ ঘোষ", genre: "সাহিত্য সংকলন"},
+{no: 111, title: "রমণী", author: "নৃসিংহপ্রসাদ ভাদুড়ী", genre: "প্রবন্ধ"},
+{no: 112, title: "গদ্য কৃত্তিবাসী রামায়ণ", author: "প্রবীর সেন", genre: "ধর্মীয় সাহিত্য"},
+{no: 113, title: "সারা পৃথিবীর রূপকথা ভারত", author: "", genre: "রূপকথা"},
+{no: 114, title: "প্রবন্ধ সংগ্রহ", author: "অম্লান দত্ত", genre: "প্রবন্ধ"},
+{no: 115, title: "প্রথম প্রতিশ্রুতি", author: "আশাপূর্ণা দেবী", genre: "উপন্যাস"},
+{no: 116, title: "বিজ্ঞানে ঈশ্বরের সংকেত", author: "মনি ভৌমিক", genre: "বিজ্ঞান"},
+{no: 117, title: "আমার জীবন আমার ম্যাজিক", author: "পিসি সরকার জুনিয়র", genre: "আত্মজীবনী"},
+{no: 118, title: "সংস্কৃত নাট্য সংগ্রহ", author: "জ্যোতিরীন্দ্রনাথ ঠাকুর", genre: "নাটক"},
+{no: 119, title: "ভারতের শেষ বাদশাহ", author: "ওয়াজিদ আলী শাহ", genre: "ইতিহাস"},
+{no: 120, title: "শতবার্ষিকী সংকলন", author: "নারায়ণ গঙ্গোপাধ্যায়", genre: "সাহিত্য সংকলন"},
+{no: 121, title: "ভৌতিক উপন্যাস সমগ্র", author: "হেমেন্দ্রকুমার রায়", genre: "ভৌতিক উপন্যাস"},
+{no: 122, title: "সংগীত তত্ত্ব", author: "দেবব্রত দত্ত", genre: "সঙ্গীত"},
+{no: 123, title: "নকশাল আন্দোলন ও তার কথাসাহিত্য", author: "ফটিকচাঁদ ঘোষ", genre: "ইতিহাস"},
+{no: 124, title: "বাণী রায় রচনাবলী", author: "", genre: "সাহিত্য সংকলন"},
+{no: 125, title: "সঞ্জীব বিচিত্রা ২", author: "সঞ্জীব চট্টোপাধ্যায়", genre: "রসিকতা"},
+{no: 126, title: "উপন্যাস সমগ্র", author: "জ্যোতিরিন্দ্র নন্দী", genre: "উপন্যাস"},
+{no: 127, title: "রচনা সংকলন", author: "সরলা দেবী চৌধুরানী", genre: "সাহিত্য সংকলন"},
+{no: 128, title: "আমি ব্রাত্য আমি মন্ত্রহীন শতবর্ষ স্মরণ গ্রন্থ", author: "দেবব্রত বিশ্বাস", genre: "আত্মজীবনী"},
+{no: 129, title: "লেখায় শিবরাম রেখায় শ্রী শৈল ১", author: "", genre: "রসিকতা"},
+{no: 130, title: "রবীন্দ্র রচনাবলী", author: "", genre: "সাহিত্য সংকলন"},
+{no: 131, title: "কবিতা সমগ্র", author: "সুনীল গঙ্গোপাধ্যায়", genre: "কবিতা"},
+{no: 132, title: "ভূত শুধু ভূত", author: "হরিনারায়ন চট্টোপাধ্যায়", genre: "ভৌতিক গল্প"},
+{no: 133, title: "স্মৃতিকোঠায়", author: "মিহির বন্দ্যোপাধ্যায়", genre: "স্মৃতিকথা"},
+{no: 134, title: "কলিকাতা স্ট্রিট ডাইরেক্টরী ১৯১৫", author: "", genre: "ইতিহাস"},
+{no: 135, title: "কি করবেন যখন মা হবেন", author: "", genre: "স্বাস্থ্য"},
+{no: 136, title: "হ্যারি পটার এবং অভিশপ্ত সন্তান", author: "", genre: "ফ্যান্টাসি"},
+{no: 137, title: "১০০ বছরের সেরা ভৌতিক", author: "শীর্ষেন্দু মুখোপাধ্যায় বারিদবরণ ঘোষ", genre: "ভৌতিক গল্প"},
+{no: 138, title: "মহাভারত", author: "রাজশেখর বসু", genre: "ধর্মীয় মহাকাব্য"},
+{no: 139, title: "মাস্টারমশাই", author: "নন্দলাল বসু সুশোভন অধিকারী", genre: "জীবনী"},
+{no: 140, title: "গল্প সমগ্র", author: "সুচিত্রা ভট্টাচার্য", genre: "ছোটগল্প"},
+{no: 141, title: "সাংঘাতিক সাসপেন্স", author: "অদ্রীশ বর্ধন", genre: "রহস্য"},
+{no: 142, title: "বুদ্ধ চেতনার গল্পগুচ্ছ", author: "হেমেন্দ্র বিকাশ চৌধুরী", genre: "ধর্মীয় গল্প"},
+{no: 143, title: "বিশ্বজয়ী প্রতিভার বর্ণময় জীবন", author: "সত্যজিৎ রায় - অরূপ মুখোপাধ্যায়", genre: "জীবনী"},
+{no: 144, title: "গল্পে গল্পে সুভাষচন্দ্র", author: "", genre: "জীবনী"},
+{no: 145, title: "রসে বসে রসনায়", author: "সুরবেক বিশ্বাস", genre: "রন্ধন"},
+{no: 146, title: "অঞ্জন যাত্রা", author: "সাজ্জাদ হুসাইন", genre: "ভ্রমণ"},
+{no: 147, title: "সত্যি সাবিত্রী", author: "সাবিত্রী চট্টোপাধ্যায়", genre: "আত্মজীবনী"},
+{no: 148, title: "নেতাজি নতুন করে দেখা", author: "কানাইলাল বসু", genre: "জীবনী"},
+{no: 149, title: "আমি একজন মেয়ে", author: "প্রচেত গুপ্ত", genre: "উপন্যাস"},
+{no: 150, title: "রাজ্য ব্যাধির ইতিবৃত্তি ক্যান্সার", author: "সিদ্ধার্থ মুখার্জি", genre: "স্বাস্থ্য"},
+{no: 151, title: "মনোবিদ রবীন্দ্রনাথ", author: "ডঃ হিরন্ময় সাহা", genre: "সমালোচনা"},
+{no: 152, title: "রহস্য গল্প সমগ্র", author: "প্রণব রায়", genre: "রহস্য গল্প"},
+{no: 153, title: "সঞ্জীব বিচিত্রা ১", author: "সঞ্জীব চট্টোপাধ্যায়", genre: "রসিকতা"},
+{no: 154, title: "আত্মকথা (২)", author: "তারাশঙ্কর বন্দ্যোপাধ্যায়", genre: "আত্মজীবনী"},
+{no: 155, title: "শান্তিনিকেতনের সেকাল", author: "শ্রী কুমার চট্টোপাধ্যায়", genre: "ইতিহাস"},
+{no: 156, title: "বাঙালির খোঁজে", author: "বিশ্বময় শংকর", genre: "সমাজবিজ্ঞান"},
+{no: 157, title: "গিরিশ কথা", author: "", genre: "জীবনী"},
+{no: 158, title: "কাজে-কর্মে শিষ্টাচার", author: "শীতল কাক্কার মেহেরা", genre: "আত্মউন্নয়ন"},
+{no: 159, title: "উপন্যাস সমগ্র (১)", author: "কামাল হোসেন", genre: "উপন্যাস"},
+{no: 160, title: "রবীন্দ্র সংগীত মহাকোষ (১)", author: "", genre: "সঙ্গীত"},
+{no: 161, title: "করোনা পুঁজি জনগণ", author: "সুকুমার সিং", genre: "রাজনীতি"},
+{no: 162, title: "সুভাষচন্দ্র বসু এবং বঙ্গ রাজনীতি", author: "প্রভাত রায়", genre: "ইতিহাস"},
+{no: 163, title: "উপেন্দ্রনাথ বন্দ্যোপাধ্যায় রচনা সমগ্র সংগ্রহ", author: "সুপ্রিয় ভট্টাচার্য", genre: "সাহিত্য সংকলন"},
+{no: 164, title: "বাঙালির খাওয়া- দাওয়া", author: "শংকর", genre: "রন্ধন"},
+{no: 165, title: "কাল পুরুষ", author: "সমরেশ মজুমদার", genre: "উপন্যাস"},
+{no: 166, title: "সুনীতি কুমার ঘোষ", author: "শুভাশিস মুখোপাধ্যায়", genre: "জীবনী"},
+{no: 167, title: "অমনিবাস", author: "অমর মিত্র", genre: "ছোটগল্প"},
+{no: 168, title: "গল্প সমগ্র", author: "ভগীরথ মিশ্র", genre: "ছোটগল্প"},
+{no: 169, title: "অপরিচিতা এবং", author: "সৌরীন সেন", genre: "ছোটগল্প"},
+{no: 170, title: "পূর্ণাঙ্গ নাটক সমগ্র", author: "পরান বন্দ্যোপাধ্যায়", genre: "নাটক"},
+{no: 171, title: "চাইল্ড সাইকোলজি", author: "শ্রী মধুসূদন", genre: "মনোবিজ্ঞান"},
+{no: 172, title: "একদা জাহ্নবীতীরে", author: "দেবজ্যোতি মিশ্র", genre: "উপন্যাস"},
+{no: 173, title: "গীতা পাঠ", author: "দ্বিজেন্দ্রনাথ ঠাকুর", genre: "ধর্মীয়"},
+{no: 174, title: "ব্রহ্ম সত্য ভাগ্য সত্য", author: "মনি ভৌমিক", genre: "দর্শন"},
+{no: 175, title: "এবার সুন্দর হবো", author: "ডাক্তার সুজাতা মুখোপাধ্যায়", genre: "স্বাস্থ্য"},
+{no: 176, title: "কালজয়ী ঘনাদা @ ৭৫+", author: "ডঃ গিরিধারী সরকার", genre: "বিজ্ঞান কল্পকাহিনী"},
+{no: 177, title: "গানের ঝরনা তলায়", author: "পবিত্র সরকার", genre: "সঙ্গীত"},
+{no: 178, title: "গোপাল ভাঁড়ের সন্ধানে", author: "সুজিত রায়", genre: "লোককথা"},
+{no: 179, title: "নুরজাহান", author: "ডঃ বিপ্লব চক্রবর্তী", genre: "জীবনী"},
+{no: 180, title: "নিজের মধ্যে নিজের বাইরে", author: "পবিত্র সরকার", genre: "প্রবন্ধ"},
+{no: 181, title: "কল্পবিজ্ঞান সমগ্র", author: "শীর্ষেন্দু মুখোপাধ্যায়", genre: "বিজ্ঞান কল্পকাহিনী"},
+{no: 182, title: "গল্প সংগ্রহ", author: "সোমেন চন্দ্র", genre: "ছোটগল্প"},
+{no: 183, title: "সঞ্চিতা", author: "নজরুল", genre: "কবিতা"},
+{no: 184, title: "জননী নারী জীবনের সুস্থতার দিশা", author: "ডাঃ গৌতম খাস্তাগীর", genre: "স্বাস্থ্য"},
+{no: 185, title: "ঈশপের গল্প", author: "", genre: "নীতিকথা"},
+{no: 186, title: "বিশেষ সংখ্যা চৌরঙ্গী", author: "ভানু বন্দ্যোপাধ্যায়", genre: "রসিকতা"},
+{no: 187, title: "ফেরা", author: "তসলিমা নাসরিন", genre: "আত্মজীবনী"},
+{no: 188, title: "শ্রুতি স্বর লয়", author: "কানাইলাল দাস", genre: "সঙ্গীত"},
+{no: 189, title: "মান্না দে অশোক ভট্টাচার্য অমিত কুমার মুখোপাধ্যায়", author: "", genre: "জীবনী"},
+{no: 190, title: "ভারতচন্দ্রের অন্নদামঙ্গল", author: "শ্রী নির্মলেন্দু মুখোপাধ্যায়", genre: "ধর্মীয় সাহিত্য"},
+{no: 191, title: "মন মেজাজের কাউন্সিলিং", author: "ডঃ সুজাতা মুখোপাধ্যায়", genre: "মনোবিজ্ঞান"},
+{no: 192, title: "ঠাকুরবাড়ির ঝুলি", author: "", genre: "লোককথা"},
+{no: 193, title: "উত্তরণ", author: "এ পি জে আব্দুল কালাম", genre: "আত্মজীবনী"},
+{no: 194, title: "১১ এ পা মেয়েদের অন্তরঙ্গ কথা", author: "শর্মিষ্ঠা দত্তগুপ্ত", genre: "স্বাস্থ্য"},
+{no: 195, title: "নারী ও কমিউনিজম", author: "", genre: "রাজনীতি"},
+{no: 196, title: "জলসাঘর চিত্রনাট্য পরিচালনা", author: "সত্যজিৎ রায়", genre: "চিত্রনাট্য"},
+{no: 197, title: "বাঙালি মেয়ের যৌনতা", author: "অর্ণব সাহা", genre: "স্বাস্থ্য"},
+{no: 198, title: "স্বর্ণপুট", author: "আনন্দ শংকর", genre: "সঙ্গীত"},
+{no: 199, title: "শ্রী শ্রী রামকৃষ্ণ যথাসম্ভব", author: "শংকর", genre: "ধর্মীয় সাহিত্য"},
+{no: 200, title: "শ্রুতিনন্দন", author: "অজয় চক্রবর্তী", genre: "সঙ্গীত"},
+{no:200, title:"শ্রুতিনন্দন", author:"অজয় চক্রবর্তী", genre:"সঙ্গীত"},
+{no:201, title:"শ্রেষ্ঠ গল্প", author:"প্রেমেন্দ্র মিত্র", genre:"ছোটগল্প"},
+{no:202, title:"বঙ্গরঙ্গমঞ্চের সংক্ষিপ্ত ইতিহাস ও নাট্য তত্ত্ব", author:"ডঃ জগন্নাথ ঘোষ", genre:"নাট্যতত্ত্ব"},
+{no:203, title:"ইংলিশের পাঠশালা", author:"পবিত্র সরকার", genre:"ভাষা শিক্ষা"},
+{no:204, title:"সুখী জীবন", author:"প্রফেসর ডক্টর সি এস দাঁ", genre:"আত্মউন্নয়ন"},
+{no:205, title:"ঝাপসা হলো টাপুর টুপুর", author:"স্বাগতালক্ষ্মী দাশগুপ্ত", genre:"কবিতা"},
+{no:206, title:"দুয়োরানীর চিঠি", author:"স্বাগতালক্ষ্মী দাশগুপ্ত", genre:"চিঠিপত্র"},
+{no:207, title:"যাতে রোগ সারে", author:"ডঃ কে সি কীর্তি ,ডঃ ডি এন সেনগুপ্ত ,কবিরাজ শুকদেব শর্মা", genre:"স্বাস্থ্য"},
+{no:208, title:"পুতুল নাচের ইতিকথা", author:"মানিক বন্দ্যোপাধ্যায়", genre:"উপন্যাস"},
+{no:209, title:"শাক্ত পদাবলী", author:"ধ্রুবকুমার মুখোপাধ্যায়", genre:"ধর্মীয় কবিতা"},
+{no:210, title:"ভারতরত্ন এ পি জে আব্দুল কালাম", author:"মৌসম মজুমদার", genre:"জীবনী"},
+{no:211, title:"অজ্ঞ রোগীর বিজ্ঞ কলম", author:"পৌলমী ভট্টাচার্য", genre:"স্বাস্থ্য"},
+{no:212, title:"শ্রেষ্ঠ গল্প", author:"মানিক বন্দ্যোপাধ্যায়", genre:"ছোটগল্প"},
+{no:213, title:"একালের ছোট গল্প সঞ্চয়ন দ্বিতীয় খন্ড", author:"", genre:"ছোটগল্প"},
+{no:214, title:"ঠাকুরমার ঝুলি", author:"দক্ষিণারঞ্জন মিত্র মজুমদার", genre:"লোককথা"},
+{no:215, title:"কিভাবে ছবি করি কিভাবে ছবি হয়", author:"", genre:"চলচ্চিত্র"},
+{no:216, title:"চালচলন", author:"অসিতকুমার সিংহ", genre:"সমাজবিজ্ঞান"},
+{no:217, title:"শেষের কবিতা", author:"রবীন্দ্রনাথ ঠাকুর", genre:"উপন্যাস"},
+{no:218, title:"আব্দুল কালাম", author:"অরুণ তিওয়ারী", genre:"জীবনী"},
+{no:219, title:"একেই কি বলে সভ্যতা", author:"ডঃ ক্ষেত্র গুপ্ত", genre:"ব্যঙ্গ"},
+{no:220, title:"শ্রেষ্ঠ কবিতা জীবনানন্দ দাশের", author:"জীবনানন্দ দাশ", genre:"কবিতা"},
+{no:221, title:"হেলেন কেলার", author:"স্বপন মুখোপাধ্যায়", genre:"জীবনী"},
+{no:222, title:"রবীন্দ্রনাথ জীবন ও কর্মকাণ্ড", author:"শান্তনু বসু", genre:"জীবনী"},
+{no:223, title:"অরণ্যের অধিকার", author:"মহাশ্বেতা দেবী", genre:"উপন্যাস"},
+{no:224, title:"বাজার করিবার সহজ উপায়", author:"রজতেন্দ্র মুখোপাধ্যায়", genre:"গৃহস্থালি"},
+{no:225, title:"সংগীত জিজ্ঞাসা", author:"রামপ্রসাদ রায়", genre:"সঙ্গীত"},
+{no:226, title:"চাঁদ বণিকের পালা", author:"শম্ভু মিত্র", genre:"নাটক"},
+{no:227, title:"ব্যঙ্গ কৌতুকে", author:"শুভঙ্কর রায়চৌধুরী", genre:"ব্যঙ্গ"},
+{no:228, title:"চৌরঙ্গী ভানু কালেকশন", author:"", genre:"রসিকতা"},
+{no:229, title:"ছোটবেলা", author:"বিল্টু দে", genre:"আত্মজীবনী"},
+{no:230, title:"আকাশের গান", author:"স্বাগতালক্ষ্মী দাশগুপ্ত", genre:"কবিতা"},
+{no:231, title:"ডেঙ্গু থেকে বাচুন", author:"ডঃ সৌম ভট্টাচার্য", genre:"স্বাস্থ্য"},
+{no:232, title:"বাংলা কি লিখবেন কেন লিখবেন", author:"", genre:"ভাষা"},
+{no:233, title:"নারী ও প্রকৃতি", author:"অতীন বন্দোপাধ্যায়", genre:"প্রবন্ধ"},
+{no:234, title:"আম আঁটির ভেপু", author:"বিভূতিভূষণ বন্দ্যোপাধ্যায়", genre:"শিশু সাহিত্য"},
+{no:235, title:"হাঁসুলী বাঁকের উপকথা", author:"তারাশঙ্কর বন্দ্যোপাধ্যায়", genre:"উপন্যাস"},
+{no:236, title:"রবীন্দ্র সংগীত (প্রথম খন্ড)", author:"শম্ভুনাথ ঘোষ", genre:"সঙ্গীত"},
+{no:237, title:"গ্রাম বাংলার রাজনীতি", author:"পার্থ সারথি বন্দ্যোপাধ্যায়", genre:"রাজনীতি"},
+{no:238, title:"সত্যজিৎ কথা চালচ্চিত্রে ও নেপথ্যে অসীম সোম", author:"", genre:"চলচ্চিত্র"},
+{no:239, title:"জাহাঙ্গীরের আত্মকথা", author:"কুমুদিনী মিত্র", genre:"আত্মজীবনী"},
+{no:240, title:"চৌরঙ্গী ছায়া দেবী বিশেষ সংখ্যা", author:"", genre:"সাহিত্য সংকলন"},
+{no:241, title:"সাহিত্য", author:"রবীন্দ্রনাথ ঠাকুর", genre:"প্রবন্ধ"},
+{no:242, title:"শাক্ত পদাবলী", author:"শ্রী অমরেন্দ্রনাথ রায়", genre:"ধর্মীয় কবিতা"},
+{no:243, title:"ঠাকুরমার ঝুলি", author:"সনৎ ভট্টাচার্য", genre:"লোককথা"},
+{no:244, title:"বুদ্ধদেব অন্য মানুষ", author:"", genre:"জীবনী"},
+{no:245, title:"মহাকাশ রহস্যের রোমাঞ্চলোকে", author:"গৌরীপ্রসাদ ঘোষ", genre:"বিজ্ঞান কল্পকাহিনী"},
+{no:246, title:"শ্রীকান্ত", author:"শরৎচন্দ্র চট্টোপাধ্যায়", genre:"উপন্যাস"},
+{no:247, title:"বাংলা গানের পথ চলা", author:"অভিজিৎ বন্দ্যোপাধ্যায়", genre:"সঙ্গীত"},
+{no:248, title:"পথের দাবী", author:"শরৎচন্দ্র চট্টোপাধ্যায়", genre:"উপন্যাস"},
+{no:249, title:"বীরাঙ্গনা কাব্য", author:"মাইকেল মধুসূদন দত্ত", genre:"কবিতা"},
+{no:250, title:"কমলাকান্তের দপ্তর", author:"বঙ্কিমচন্দ্র চট্টোপাধ্যায়", genre:"ব্যঙ্গ"},
+{no: 251, title: "প্রভাত কুমার মুখোপাধ্যায় এর শ্রেষ্ঠ গল্প", author: "", genre: "ছোটগল্প"},
+{no: 252, title: "স্মৃতিসুধায়", author: "সুমিত্রা সেন", genre: "স্মৃতিকথা"},
+{no: 253, title: "শান্তিনিকেতন", author: "রবীন্দ্রনাথ ঠাকুর", genre: "প্রবন্ধ"},
+{no: 254, title: "প্রতিপক্ষ", author: "সুনীল গঙ্গোপাধ্যায়", genre: "উপন্যাস"},
+{no: 255, title: "আয়ওয়ার ডায়েরি", author: "শঙ্খ ঘোষ", genre: "ডায়েরি"},
+{no: 256, title: "কম্পোজার সত্যজিৎ", author: "দেবজ্যোতি মিশ্র", genre: "সঙ্গীত"},
+{no: 257, title: "অভিনব সংগীত শিক্ষা", author: "শ্রী রঘুনাথ সাহা", genre: "সঙ্গীত শিক্ষা"},
+{no: 258, title: "রবীন্দ্র রচনাবলী", author: "একাদশ খন্ড", genre: "সাহিত্য সংকলন"},
+{no: 259, title: "প্রবঞ্চক", author: "নারায়ণ সান্যাল", genre: "রহস্য উপন্যাস"},
+{no: 260, title: "একালের ছোট গল্প", author: "কলিকাতা বিশ্ববিদ্যালয়", genre: "ছোটগল্প"},
+{no: 261, title: "রবীন্দ্রনাথের গান", author: "সুশান্ত কুমার সামন্ত", genre: "সঙ্গীত"},
+{no: 262, title: "চ্যাপলিনের সিনেমার গল্প", author: "শান্তি নাথ", genre: "চলচ্চিত্র"},
+{no: 263, title: "কালজয়ী কাদম্বিনী", author: "ডঃ সুনীতা বন্দোপাধ্যায়", genre: "জীবনী"},
+{no: 264, title: "সোনার তরী", author: "রবীন্দ্রনাথ ঠাকুর", genre: "কবিতা"},
+{no: 265, title: "টেরাকোটা ফলকে মহাভারত কাহিনী", author: "অপূর্ব চট্টোপাধ্যায়", genre: "ধর্মীয় সাহিত্য"},
+{no: 266, title: "সাংবাদিক হরিদাস পালের স্বীকারোক্তি", author: "", genre: "ব্যঙ্গ"},
+{no: 267, title: "ঈশ্বর চেতনা", author: "তপন আচার্য", genre: "ধর্মীয় দর্শন"},
+{no: 268, title: "ঈশ্বরচন্দ্র গুপ্ত কবিতা সংগ্রহ", author: "বঙ্কিমচন্দ্র চট্টোপাধ্যায়", genre: "কবিতা"},
+{no: 269, title: "হা হা হি হি হো হো", author: "চন্দ্রিল ভট্টাচার্য", genre: "রসিকতা"},
+{no: 270, title: "বিবেকানন্দের জীবনের রমণী", author: "চিরশ্রী বন্দোপাধ্যায়", genre: "জীবনী"},
+{no: 271, title: "শ্রী শ্রী রামকৃষ্ণ কথামৃত", author: "", genre: "ধর্মীয় সাহিত্য"},
+{no: 272, title: "মনোজাগতিক", author: "মনোজ মিত্র", genre: "নাটক"},
+{no: 273, title: "স্বামী বিবেকানন্দ বাণী ও রচনা", author: "প্রথম খন্ড", genre: "ধর্মীয় বাণী"},
+{no: 274, title: "দুঃসময়ের দিনলিপি", author: "শংকর", genre: "ডায়েরি"},
+{no: 275, title: "গল্পগুচ্ছ", author: "রবীন্দ্রনাথ ঠাকুর", genre: "ছোটগল্প"},
+{no: 276, title: "গীতবিতান", author: "রবীন্দ্রনাথ ঠাকুর", genre: "সঙ্গীত"},
+{no: 277, title: "ও আসবে বলে", author: "ডঃ গৌতম খাস্তগীর", genre: "উপন্যাস"},
+{no: 278, title: "আগন্তুক", author: "সত্যজিৎ রায়", genre: "ছোটগল্প"},
+{no: 279, title: "চর্যাগীতি পরিক্রমা", author: "নির্মল দাস", genre: "সাহিত্য সমালোচনা"},
+{no: 280, title: "দুঃখবতী মেয়ে", author: "তসলিমা নাসরিন", genre: "উপন্যাস"},
+{no: 281, title: "ছেলেবেলা", author: "রবীন্দ্রনাথ ঠাকুর", genre: "আত্মজীবনী"},
+{no: 282, title: "৫১ বর্তী বাঙালির হারানো ৫১ পদ", author: "ইন্দিরা মুখোপাধ্যায়", genre: "রন্ধন"},
+{no: 283, title: "অপরাজিত সত্যজিৎ তৃতীয় খন্ড", author: "কল্যাণী বিশ্ববিদ্যালয়", genre: "চলচ্চিত্র"},
+{no: 284, title: "কোজাগরী", author: "দেবেশ রায়", genre: "উপন্যাস"},
+{no: 285, title: "অপারেশন ৭১", author: "সমৃদ্ধ দত্ত", genre: "ইতিহাস"},
+{no: 286, title: "সকল গৃহ হারালো যার", author: "তসলিমা নাসরিন", genre: "উপন্যাস"},
+{no: 287, title: "চুম্বন", author: "তাসলিমা নাসরিন", genre: "কবিতা"},
+{no: 288, title: "কলকাতায় ফেলুদা", author: "সত্যজিৎ রায়", genre: "গোয়েন্দা রহস্য"},
+{no: 289, title: "ফেলুদা একাদশ", author: "সত্যজিৎ রায়", genre: "গোয়েন্দা রহস্য"},
+{no: 290, title: "ফেলুদার সপ্তকান্ড", author: "সত্যজিৎ রায়", genre: "গোয়েন্দা রহস্য"},
+{no: 291, title: "সাতকাহন", author: "সমরেশ মজুমদার", genre: "উপন্যাস"},
+{no: 292, title: "উপন্যাস সমগ্র", author: "সুচিত্রা ভট্টাচার্য", genre: "উপন্যাস"},
+{no: 293, title: "উপন্যাস সমগ্র ১২", author: "শীর্ষেন্দু মুখোপাধ্যায়", genre: "উপন্যাস"},
+{no: 294, title: "পাঁচটি প্রেমের উপন্যাস", author: "শচীন্দ্রনাথ বন্দ্যোপাধ্যায়", genre: "প্রেমের গল্প"},
+{no: 295, title: "পাঁচটি প্রেমের উপন্যাস", author: "শচীন্দ্রনাথ বন্দ্যোপাধ্যায়", genre: "প্রেমের গল্প"}
+];
+
+let currentBooks=[...books];
+let currentGenre="all";
+
+const searchInput=document.getElementById("searchInput");
+const micBtn=document.createElement("button");
+
+micBtn.innerText="🎤";
+
+searchInput.after(micBtn);
+const booksBody=document.getElementById("booksBody");
+const filterBtns=document.querySelectorAll(".filter-btn");
+const totalBooksSpan=document.getElementById("totalBooks");
+const activeFilterSpan=document.getElementById("activeFilter");
+const sortSelect=document.getElementById("sortSelect");
+
+const downloadBtn=document.getElementById("downloadPDF");
+const keywordMap={
+ghost:"ভৌতিক",
+horror:"ভৌতিক",
+detective:"গোয়েন্দা",
+mystery:"রহস্য",
+novel:"উপন্যাস",
+poetry:"কবিতা",
+music:"সঙ্গীত",
+feluda:"ফেলুদা"
+};
+
+function sortBooks(list){
+
+const type=sortSelect.value;
+
+if(type==="az"){
+list.sort((a,b)=>a.title.localeCompare(b.title));
+}
+
+else if(type==="za"){
+list.sort((a,b)=>b.title.localeCompare(a.title));
+}
+
+else{
+list.sort((a,b)=>a.no-b.no);
+}
+
+renderBooks(list);
+
+}
+
+function renderBooks(list=currentBooks){
+
+booksBody.innerHTML="";
+
+if(list.length===0){
+booksBody.innerHTML='<tr><td colspan="4">কোনো বই পাওয়া যায়নি</td></tr>';
+totalBooksSpan.textContent=0;
+return;
+}
+
+list.forEach(book=>{
+
+const row=document.createElement("tr");
+
+row.innerHTML=`
+<td>${book.no}</td>
+<td>${book.title}</td>
+<td>${book.author||"অজানা"}</td>
+<td>${book.genre}</td>
+`;
+
+booksBody.appendChild(row);
+
+});
+
+totalBooksSpan.textContent=list.length;
+
+}
+
+function filterBooks(){
+
+let searchTerm=searchInput.value.toLowerCase().trim();
+
+if(keywordMap[searchTerm]){
+searchTerm=keywordMap[searchTerm];
+}
+
+currentBooks=books.filter(book=>{
+
+const title=book.title.toLowerCase();
+const author=(book.author||"").toLowerCase();
+const genre=book.genre.toLowerCase();
+const number=book.no.toString();
+
+const matchesSearch=
+!searchTerm||
+title.includes(searchTerm)||
+author.includes(searchTerm)||
+genre.includes(searchTerm)||
+number.includes(searchTerm);
+
+const matchesGenre=
+currentGenre==="all"||
+book.genre===currentGenre;
+
+return matchesSearch&&matchesGenre;
+
+});
+
+sortBooks(currentBooks);
+
+}
+
+searchInput.addEventListener("input",filterBooks);
+
+sortSelect.addEventListener("change",()=>{
+
+sortBooks(currentBooks);
+
+});
+
+filterBtns.forEach(btn=>{
+
+btn.addEventListener("click",()=>{
+
+filterBtns.forEach(b=>b.classList.remove("active"));
+btn.classList.add("active");
+
+currentGenre=btn.dataset.genre;
+
+activeFilterSpan.textContent=btn.textContent;
+
+filterBooks();
+
+});
+
+});
+
+const speech=new webkitSpeechRecognition();
+
+speech.lang="bn-IN";
+
+micBtn.onclick=()=>{
+
+speech.start();
+
+};
+
+speech.onresult=(event)=>{
+
+searchInput.value=event.results[0][0].transcript;
+
+filterBooks();
+
+};
+
+
+
+renderBooks();
+downloadBtn.addEventListener("click",()=>{
+
+let text="Bengali Book Library\n\n";
+
+books.forEach(b=>{
+text+=b.no+" - "+b.title+" - "+b.author+" - "+b.genre+"\n";
+});
+
+const blob=new Blob([text],{type:"text/plain"});
+
+const link=document.createElement("a");
+
+link.href=URL.createObjectURL(blob);
+
+link.download="books.txt";
+
+link.click();
+
+});
+</script>
+
+
+<div class="footer">
+    <p>© 2026 বাংলা গ্রন্থাগার | Designed with ❤️ by Pranjali</p>
+</div>
+
+</body>
+</html>
